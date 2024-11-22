@@ -1,0 +1,93 @@
+﻿@page "/"
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@if (!UserService.IsAuthenticated)
+{
+    NavigationManager.NavigateTo("/login", true);
+}
+else
+{
+
+    <h1>INVENTARIO</h1>
+
+    <p>
+        <a href="/add-product" class="btn btn-primary">Agregar Producto</a>
+    </p>
+
+    @if (products == null)
+    {
+        <p><em>No se encontraron productos.</em></p>
+    }
+    else if (products.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Producto</td>
+                    <td>Stock</td>
+                    <td>Categoria</td>
+                    <td>Acciones</td> <!-- Nueva columna para botones -->
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var prod in products)
+                {
+                    <tr>
+                        <td>@prod.Name</td>
+                        <td>@prod.Stock</td>
+                        <td>@prod.Category</td>
+                        <td>
+                            <button class="btn btn-warning" @onclick="() => EditProduct(prod.Id)">Modificar</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteProduct(prod.Id)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p><em>No hay productos disponibles.</em></p>
+    }
+}
+
+@code {
+    IEnumerable<Product> products = Enumerable.Empty<Product>(); // Inicializar como vacío
+    string errorMessage; // Variable para manejar errores
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserService.IsAuthenticated)
+        {
+            try
+            {
+                products = await ProductService.GetAllProducts();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error al obtener productos: {ex.Message}";
+                products = Enumerable.Empty<Product>(); // Asegúrate de que `products` no sea nulo
+            }
+        }
+    }
+
+    private void EditProduct(string id)
+    {
+        NavigationManager.NavigateTo($"/edit-product/{id}");
+    }
+
+    private async Task DeleteProduct(string id)
+    {
+        try
+        {
+            await ProductService.DeleteProduct(id);
+            products = products.Where(p => p.Id != id).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al eliminar producto: {ex.Message}";
+        }
+    }
+}

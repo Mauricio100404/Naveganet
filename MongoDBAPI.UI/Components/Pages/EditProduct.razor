@@ -1,0 +1,64 @@
+﻿@page "/edit-product/{id}"
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+
+<h3>Editar Producto</h3>
+
+@if (product == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <EditForm Model="@product" OnValidSubmit="SaveProduct">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Nombre:</label>
+            <InputText class="form-control" @bind-Value="product.Name" />
+        </div>
+        <div class="form-group">
+            <label>Stock:</label>
+            <InputNumber class="form-control" @bind-Value="product.Stock" />
+        </div>
+        <div class="form-group">
+            <label>Categoria:</label>
+            <InputText class="form-control" @bind-Value="product.Category" />
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Product product = new Product();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            product = await ProductService.GetProductDetails(Id);
+        }
+        catch (Exception ex)
+        {
+            // Manejo del error si el producto no se encuentra
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private async Task SaveProduct()
+    {
+        try
+        {
+            await ProductService.SaveProduct(product);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            // Manejar el error si la actualización falla
+        }
+    }
+}

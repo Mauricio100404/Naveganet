@@ -1,0 +1,1 @@
+C:\NavegaNetCRUD\MongoDBAPI10B\MongoDBAPI.UI\MongoDBAPI.UI.csproj;x64
